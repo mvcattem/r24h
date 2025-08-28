@@ -30,7 +30,7 @@ input[type=number] { width: 80px; }
 <table id="records">
   <thead>
     <tr>
-      <th>Refeição</th><th>Alimento</th><th>Unidade</th><th>Porção (g)</th><th>Qtd</th><th>Energia</th><th>Carboidrato total</th><th>Proteína</th><th>Lipídios</th><th>Fibra alimentar</th><th>Classificação NOVA</th></tr>
+      <th>Refeição</th><th>Alimento</th><th>Unidade</th><th>Porção (g ou mL)</th><th>Qtd</th><th>Energia</th><th>Carboidrato total</th><th>Proteína</th><th>Lipídios</th><th>Fibra alimentar</th><th>Classificação NOVA</th></tr>
   </thead>
   <tbody></tbody>
 </table>
@@ -90,7 +90,16 @@ var unitOptions = {
   'colher de chá (5 g)': 5,
   'concha (150 g)': 150,
   'fatia (30 g)': 30,
-  'pedaço (50 g)': 50
+  'pedaço (50 g)': 50,
+  // Medidas caseiras adicionais com base em valores típicos da TBCA
+  // Medidas revisadas de acordo com as correções do usuário
+  'colher de servir de arroz cheia (55 g)': 55,
+  'escumadeira de arroz cheia (85 g)': 85,
+  'concha de feijão rasa (80 g)': 80,
+  'concha de feijão cheia (140 g)': 140,
+  'copo americano simples (180 ml)': 180,
+  'copo americano duplo (250 ml)': 250,
+  'fatia de pão (25 g)': 25
 };;
 var novaMapping = {
     "abacate, polpa, in natura, persea americana mill,": "in natura ou minimamente processado",
@@ -1530,13 +1539,18 @@ function updateTotals() {
       {key:'Proteína', nonId:'proteinNonUltra', ultraId:'proteinUltra', legendId:'proteinLegend'},
       {key:'Lipídios', nonId:'lipidNonUltra', ultraId:'lipidUltra', legendId:'lipidLegend'}
     ];
+    // Mapear chaves de macronutrientes para rótulos exibidos no gráfico
+    var nutrientLabels = {'Carboidrato total': 'Carboidrato', 'Proteína': 'Proteína', 'Lipídios': 'Lipídios'};
     macroBars.forEach(function(item){
       var tot = macroNonUltra[item.key] + macroUltra[item.key];
       var nonp = tot > 0 ? (macroNonUltra[item.key] / tot * 100) : 0;
       var ultrap = tot > 0 ? (macroUltra[item.key] / tot * 100) : 0;
+      // ajustar largura das barras
       document.getElementById(item.nonId).style.width = nonp + '%';
       document.getElementById(item.ultraId).style.width = ultrap + '%';
-      document.getElementById(item.legendId).textContent = 'Não AUP: ' + macroNonUltra[item.key].toFixed(2) + ' (' + nonp.toFixed(1) + '%) / AUP: ' + macroUltra[item.key].toFixed(2) + ' (' + ultrap.toFixed(1) + '%)';
+      // prefixar rótulo do macronutriente na legenda
+      var label = nutrientLabels[item.key] || item.key;
+      document.getElementById(item.legendId).textContent = label + ' – Não AUP: ' + macroNonUltra[item.key].toFixed(2) + ' (' + nonp.toFixed(1) + '%) / AUP: ' + macroUltra[item.key].toFixed(2) + ' (' + ultrap.toFixed(1) + '%)';
     });
 }
 function downloadCSV() {
@@ -1544,7 +1558,7 @@ function downloadCSV() {
   var rows = tbody.getElementsByTagName('tr');
   var participantId = document.getElementById('participantId').value || '';
   var globalDate = document.getElementById('globalDate').value || '';
-  var csv = 'ID do participante,Data,Refeição,Alimento,Unidade,Porção (g),Qtd,Energia (kcal),Carboidrato total,Proteína,Lipídios,Fibra alimentar' + '\\n';
+  var csv = 'ID do participante,Data,Refeição,Alimento,Unidade,Porção (g ou mL),Qtd,Energia (kcal),Carboidrato total,Proteína,Lipídios,Fibra alimentar' + '\\n';
   for (var i = 0; i < rows.length; i++) {
     var cells = rows[i].getElementsByTagName('td');
     var mealVal = cells[0].getElementsByTagName('select')[0].value;
@@ -1576,7 +1590,7 @@ function downloadExcel() {
   var rows = tbody.getElementsByTagName('tr');
   var participantId = document.getElementById('participantId').value || '';
   var globalDate = document.getElementById('globalDate').value || '';
-  var csv = 'ID do participante,Data,Refeição,Alimento,Unidade,Porção (g),Qtd,Energia (kcal),Carboidrato total,Proteína,Lipídios,Fibra alimentar,Classificação NOVA' + '\n';
+  var csv = 'ID do participante,Data,Refeição,Alimento,Unidade,Porção (g ou mL),Qtd,Energia (kcal),Carboidrato total,Proteína,Lipídios,Fibra alimentar,Classificação NOVA' + '\n';
   for (var i = 0; i < rows.length; i++) {
     var cells = rows[i].getElementsByTagName('td');
     var mealVal = cells[0].getElementsByTagName('select')[0].value;
